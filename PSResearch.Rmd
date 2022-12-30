@@ -1,0 +1,65 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+```{r}
+set.seed(11)
+data <- read.csv("smoking.csv")
+data.smokers <- data[which(data$smoking==1), 1:27]
+data.nonsmokers <- data[which(data$smoking==0), 1:27]
+
+plot(table(data.smokers$age), main = "plot method for class \"table\"")
+(data.smokers)
+```
+
+#Task 1
+```{r}
+ages.amount_smokers <- c()
+for (i in seq(20, 85, 5)){
+  ages.amount_smokers <- append(ages.amount_smokers, sum(data.smokers[which(data.smokers$age==i), 27]))
+}
+(ages.amount_smokers)
+
+ages.amount_non_smokers <- c()
+data.nonsmokers["smoking"] <- 1
+for (i in seq(20, 85, 5)){
+  ages.amount_non_smokers <- append(ages.amount_non_smokers, sum(data.nonsmokers[which(data.nonsmokers$age==i), 27]))
+}
+(ages.amount_non_smokers)
+ratio <- ages.amount_smokers / ages.amount_non_smokers
+barplot(ratio, main = "The distribution of smokers/non-smoker ratio is exponentially distributed.", names.arg = seq(20, 85, 5))
+
+```
+
+```{r}
+exp1 <- rexp(length(ratio), 1/mean(ratio))
+ks.test(ratio, exp1)
+```
+
+
+# Task 2
+```{r}
+ages.amount <- c()
+for (i in seq(20, 85, 5)){
+  ages.amount <- append(ages.amount, sum(data.smokers[which(data.smokers$age==i), 27]))
+}
+
+norm1 <- rnorm(length(ages.amount), mean=mean(ages.amount), sd=sd(ages.amount))
+ks.test(ages.amount, norm1)
+```
+
+# Task 3
+```{r}
+ages <- data.smokers$age
+(mean(ages))
+t.test(ages, alternative = "greater", mu=40)
+```
+
+
+# Task 4
+```{r}
+hemoglobin_smokers <- data.smokers$hemoglobin
+hemoglobin_nonsmokers <- data.nonsmokers$hemoglobin
+t.test(hemoglobin_smokers, hemoglobin_nonsmokers, alternative = "two.sided")
+
+```
