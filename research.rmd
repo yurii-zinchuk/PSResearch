@@ -1,0 +1,102 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+$Hypothesis$ $1:$ $The$ $distribution$ $of$ $smokers/non-smoker$ $ratio$ $is$ $exponential:$
+
+$$H_0 : F = F_0 \\vs\\ H_1 : F \ne F_0$$
+
+$We$ $use$ $Kolmogorov -Smirnov$ $test:$
+
+$If$ $p-value$ $\le 0.05$ $\to$ $reject$ $H_0$
+
+$else$ $\to$ $do$ $not$ $reject$ $H_0$
+
+```{r}
+set.seed(11)
+data <- read.csv("smoking.csv")
+data.smokers <- data[which(data$smoking==1), 1:27]
+data.nonsmokers <- data[which(data$smoking==0), 1:27]
+```
+
+```{r}
+ages.amount_smokers <- c()
+for (i in seq(20, 85, 5)){
+  ages.amount_smokers <- append(ages.amount_smokers, sum(data.smokers[which(data.smokers$age==i), 27]))
+}
+ages.amount_non_smokers <- c()
+data.nonsmokers["smoking"] <- 1
+for (i in seq(20, 85, 5)){
+  ages.amount_non_smokers <- append(ages.amount_non_smokers, sum(data.nonsmokers[which(data.nonsmokers$age==i), 27]))
+}
+ratio <- ages.amount_smokers / ages.amount_non_smokers
+barplot(ratio, main = "The distribution of smokers/non-smoker ratio is exponential.", names.arg = seq(20, 85, 5), col="#a83264")
+```
+
+$The$ $p-value$ $= 0.9205$ $> 0.05$ $\to$ $ratio$ $is$ $exponentially$ $distributed$
+
+```{r}
+exponential <- rexp(length(ratio), 1/mean(ratio))
+ks.test(ratio, exponential)
+```
+
+$Hypothesis$ $2:$ $The$ $number$ $of$ $smokers$, $depending$ $on$ $people’s$ $age$ $is$ $normally$ $distributed.$
+
+$$H_0 : F = F_0 \\vs\\ H_1 : F \ne F_0$$
+
+$We$ $use$ $Kolmogorov -Smirnov$ $test:$
+
+$If$ $p-value$ $\le 0.05$ $\to$ $reject$ $H_0$
+
+$else$ $\to$ $do$ $not$ $reject$ $H_0$
+
+```{r}
+ages.amount <- c()
+for (i in seq(20, 85, 5)){
+  ages.amount <- append(ages.amount, sum(data.smokers[which(data.smokers$age==i), 27]))
+}
+norm1 <- rnorm(length(ages.amount), mean=mean(ages.amount), sd=sd(ages.amount))
+ks.test(ages.amount, norm1)
+```
+
+$The$ $p-value = 0.3433 > 0.05$ $\to$ $the$ $number$ $of$ $smokers$ $are$ $normally$ $distributed$
+
+```{r}
+plot(table(data.smokers$age), main = "The frequency of smoker's age", xlab ='Age', ylab = "Frequency", col="#32a856")
+plot(table(data.nonsmokers$age), main = "The frequency of unsmoker's age", xlab ='Age', ylab = "Frequency", col="#32a88f")
+```
+
+$Hypothesis$ $3:$ $The$ $mean$ $of$ $smokers$ $age$ $are$ $\ge40.$
+
+$$H_0 : \mu \ge 40   \\vs\\ H_1: \mu < 40 $$
+
+$We$ $use$ $T-test.$
+
+```{r}
+ages <- data.smokers$age
+t.test(ages, alternative = "less", mu=40)
+```
+
+$The$ $p-value = 1 > 0.05$ $,so$ $the$ $\mu$ $of$ $smokers$ $age$ $\ge40$
+
+$Hypothesis$ $4:$ $There$ $is$ $no$ $significance$ $difference$ $in$ $the$ $hemoglobin$ $mean$ $of$ $smokers$ $and$ $non-smokers.$
+
+$$H_0:\mu_x = \mu_y  \\vs\\ H_1 :\mu_x \ne \mu_y $$
+
+$We$ $use$ $two-sided$ $T-test.$
+
+```{r}
+hemoglobin_smokers <- data.smokers$hemoglobin
+hemoglobin_nonsmokers <- data.nonsmokers$hemoglobin
+t.test(hemoglobin_smokers, hemoglobin_nonsmokers, alternative = "two.sided")
+```
+
+$As$ $p-value = < 2.2e-16 < 0.05$ $there$ $is$ $significance$ $difference$ $in$ $the$ $hemoglobin$ $mean$ $of$ $smokers$ $and$ $non-smokers.$
+
+```{r}
+plot(table(hemoglobin_smokers), type='l', col="#eb1345", xlab = "Hemoglobin value", ylab = "The number of people")
+lines(table(hemoglobin_nonsmokers), col="#13ebbc")
+```
+$Hypothesis$ $5:$ $There$ $is$ $no$ $relation$ $between$ $eyesight$ $and$ $being$  $smokers$ $or$ $non-smokers.$
+
