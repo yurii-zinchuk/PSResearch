@@ -3,22 +3,27 @@ title: "R Notebook"
 output: html_notebook
 ---
 
-$Hypothesis$ $1:$ $The$ $distribution$ $of$ $smokers/non-smoker$ $ratio$ $is$ $exponential:$
+For this project we analyze smokers/ non - smokers data set. It is found on the Kaggle website, containing more than 55 thousand people's data, along with whether they smoke or not. On the Kaggle website, there is a parsed version of the original based on the National Health Insurance Service Health Checkup Information, taken from here. There are 27 categories of people's personal info such as height, weight, age and health conditions.
 
-$$H_0 : F = F_0 \\vs\\ H_1 : F \ne F_0$$
+The parameter smoke denotes 0 as non-smoker and 1 as smoker.
 
-$We$ $use$ $Kolmogorov -Smirnov$ $test:$
-
-$If$ $p-value$ $\le 0.05$ $\to$ $reject$ $H_0$
-
-$else$ $\to$ $do$ $not$ $reject$ $H_0$
+In this research we are going to discover how the specific data is distributed, mean values, analyze the dependencies of being smoker/non-smoker and health-condition.
 
 ```{r}
 set.seed(11)
 data <- read.csv("smoking.csv")
 data.smokers <- data[which(data$smoking==1), 1:27]
 data.nonsmokers <- data[which(data$smoking==0), 1:27]
+(data)
 ```
+
+$Hypothesis$ $1:$ $The$ $distribution$ $of$ $smokers/non-smoker$ $ratio$ $is$ $exponential:$
+
+$$H_0 : F = F_0 \\vs\\ H_1 : F \ne F_0$$ $We$ $use$ $Kolmogorov -Smirnov$ $test:$
+
+$If$ $p-value$ $\le 0.05$ $\to$ $reject$ $H_0$ $else$ $\to$ $do$ $not$ $reject$ $H_0$
+
+$The$ $p-value$ $= 0.9205$ $> 0.05$ $\to$ $ratio$ $is$ $exponentially$ $distributed$
 
 ```{r}
 ages.amount_smokers <- c()
@@ -33,8 +38,6 @@ for (i in seq(20, 85, 5)){
 ratio <- ages.amount_smokers / ages.amount_non_smokers
 barplot(ratio, main = "The distribution of smokers/non-smoker ratio is exponential.", names.arg = seq(20, 85, 5), col="#a83264")
 ```
-
-$The$ $p-value$ $= 0.9205$ $> 0.05$ $\to$ $ratio$ $is$ $exponentially$ $distributed$
 
 ```{r}
 exponential <- rexp(length(ratio), 1/mean(ratio))
@@ -98,5 +101,127 @@ $As$ $p-value = < 2.2e-16 < 0.05$ $there$ $is$ $significance$ $difference$ $in$ 
 plot(table(hemoglobin_smokers), type='l', col="#eb1345", xlab = "Hemoglobin value", ylab = "The number of people")
 lines(table(hemoglobin_nonsmokers), col="#13ebbc")
 ```
-$Hypothesis$ $5:$ $There$ $is$ $no$ $relation$ $between$ $eyesight$ $and$ $being$  $smokers$ $or$ $non-smokers.$
 
+$Hypothesis$ $5:$ $There$ $is$ $no$ $relation$ $between$ $eyesight$ $and$ $being$ $smokers$ $or$ $non-smokers.$
+
+$We$ $use$ $correlation$ $test$ $for$ $testing$ $relation$ $between$ $2$ $parameters$
+
+$As$ $our$ $data$ $is$ $huge$ $for$ $shapiro-normallity$ $testing$ $we$ $would$ $better$ $test$ $it$ $with$ $Kendall$ $method$.
+
+$H_0 :$ $The$ $true$ $correlation$ $is$ $equal$ $to$ $0$
+
+$H_1 :$ $The$ $true$ $correlation$ $is$ $not$ $equal$ $to$ $0$
+
+$The$ $p-value$ $shows$ $that$ $we$ $reject$ $H_0$ $hypothesis$ $and$ $correlation$ $between$ $right-$ $eyesight$ $and$ $being$ $smoker/non-smoker$ $is$ $not$ $0$.
+
+$The$ $same$ $for$ $left-eyesight.$
+
+$However$ $the$ $correlation$ $coefficient$ $is$ $close$ $to$ $0$ $\to$ $there$ $is$ $weak$ $positive$ $relation$ $between$ $eyesight$ $and$ $being$ $smoker/non-smoker$.
+
+```{r}
+right.eyesight <- data$eyesight.right.
+left.eyesight <- data$eyesight.left.
+people <- data$smoking
+cor.test(people, right.eyesight, method = "kendall")
+cor.test(people, left.eyesight, method = "kendall")
+```
+
+```{r}
+library("ggplot2")
+ggplot(data,aes(right.eyesight, people)) +
+  geom_point() +
+  geom_smooth(method='lm', color='turquoise')  + labs(x='right - eyesight', y='is smoker', title='Relation between being smoker and right-eyesight') +
+  theme(plot.title = element_text(hjust=0.5, face='bold')) 
+ggplot(data,aes(left.eyesight, people)) +
+  geom_point() +
+  geom_smooth(method='lm')  +  labs(x='left - eyesight', y='is smoker', title='Relation between being smoker and left-eyesight') +
+  theme(plot.title = element_text(hjust=0.5, face='bold')) 
+```
+
+```{r}
+eyesight_model.right <- lm(smoking~right.eyesight, data=data)
+summary(eyesight_model.right)
+eyesight_model.left <- lm(smoking~left.eyesight, data=data)
+summary(eyesight_model.left)
+```
+
+$Also$ $we$ $decided$ $to$ $test$ $relation$ $between$ $other$ $health$ $parameters$ $of$ $smokers/non-smokers.$
+
+$Hypothesis$ $6:$ $There$ $is$ $no$ $relation$ $between$ $blood sugar$ $and$ $cholesterol$ $of$ $smokers.$
+
+$H_0 :$ $The$ $true$ $correlation$ $is$ $equal$ $to$ $0$
+
+$H_1 :$ $The$ $true$ $correlation$ $is$ $not$ $equal$ $to$ $0$
+
+$The$ $p-value > 0.05$ $,so$ $we$ $don't$ $reject$ $H_0$
+
+```{r}
+ggplot(data.smokers,aes(data.smokers$fasting.blood.sugar, data.smokers$Cholesterol)) +
+  geom_point() +
+  geom_smooth(method='lm', color='turquoise')  + labs(x='blood sugar', y='cholesterol', title='Relation between cholestorol and blood sugar of smokers') +
+  theme(plot.title = element_text(hjust=0.5, face='bold'))
+```
+
+```{r}
+cor.test(data.smokers$fasting.blood.sugar, data.smokers$Cholesterol)
+```
+
+$Hypothesis$ $7:$ $There$ $is$ $no$ $relation$ $between$ $blood sugar$ $and$ $cholesterol$ $of$ $non-smokers.$
+
+$H_0 :$ $The$ $true$ $correlation$ $is$ $equal$ $to$ $0$
+
+$H_1 :$ $The$ $true$ $correlation$ $is$ $not$ $equal$ $to$ $0$
+
+$The$ $p-value < 0.05$ $\to$ $we$ $reject$ $H_0.$ $The$ $correlation$ $is$ $close$ $to$ $0$ $\to$ $weak$ $positive$ $relation.$
+
+```{r}
+ggplot(data.nonsmokers,aes(data.nonsmokers$fasting.blood.sugar, data.nonsmokers$Cholesterol)) +
+  geom_point() +
+  geom_smooth(method='lm', color='turquoise')  + labs(x='blood sugar', y='cholesterol', title='Relation between blood sugar and cholesterol of non-smokers') + theme(plot.title = element_text(hjust=0.5, face='bold'))
+```
+
+```{r}
+cor.test(data.nonsmokers$fasting.blood.sugar, data.nonsmokers$Cholesterol)
+```
+
+$Hypothesis$ $8:$ $There$ $is$ $no$ $relation$ $between$ $hemoglobin$ $and$ $cholesterol$ $of$ $smokers.$
+
+$H_0 :$ $The$ $true$ $correlation$ $is$ $equal$ $to$ $0$
+
+$H_1 :$ $The$ $true$ $correlation$ $is$ $not$ $equal$ $to$ $0$
+
+$The$ $p-value < 0.05$ $,so$ $we$ $reject$ $H_0$
+
+$The$ $correlation$ $coeficient$ $is$ $close$ $to$ $0$ $\to$ $relation$ $is$ $weak$ $positive$ $correlated$
+
+```{r}
+ggplot(data.smokers,aes(data.smokers$hemoglobin, data.smokers$Cholesterol)) +
+  geom_point() +
+  geom_smooth(method='lm', color='turquoise')  + labs(x='hemoglobin', y='cholesterol', title='Relation between hemoglobin and cholesterol value  of smokers')
+```
+
+```{r}
+cor.test(data.smokers$hemoglobin, data.smokers$Cholesterol)
+```
+
+$Hypothesis$ $9:$ $There$ $is$ $no$ $relation$ $between$ $hemoglobin$ $and$ $cholesterol$ $of$ $non-smokers.$
+
+$H_0 :$ $The$ $true$ $correlation$ $is$ $equal$ $to$ $0$
+
+$H_1 :$ $The$ $true$ $correlation$ $is$ $not$ $equal$ $to$ $0$
+
+$The$ $p-value < 0.05$ $,so$ $we$ $reject$ $H_0$
+
+$The$ $correlation$ $coeficient$ $is$ $close$ $to$ $0$ $\to$ $relation$ $is$ $weak$ $positive$ $correlated$
+
+```{r}
+ggplot(data.nonsmokers,aes(data.nonsmokers$hemoglobin, data.nonsmokers$Cholesterol)) +
+  geom_point() +
+  geom_smooth(method='lm', color='turquoise')  + labs(x='hemoglobin', y='cholesterol', title='Relation between hemoglobin and cholesterol value  of non-smokers')
+```
+
+```{r}
+cor.test(data.nonsmokers$hemoglobin, data.nonsmokers$Cholesterol)
+```
+
+As a result, we discovered that smoking impacts a lot people's health condition, however not so much as we expected before this research. The relation between hemoglobin level and cholesterol of smokers is stronger than in non-smoker, however relation between blood sugar level and cholesterol is the same correlated for smokers and non-smokers. Also, smokers' hemoglobin mean is worse than non-smokers. The distribution of smoker's age wasn't difficult to predict and our hypothesis was approved, however it was surprising that distribution of smokers/non-smokers ration is exponential. During this research we used our theoretical knowledge on practice, almost all testing methods and linear-regression; and discovered how it works in the real testing of data. We analyze interesting data set for us, because it was interesting if the impact of smoking  is so crucial on this huge sample of population.
